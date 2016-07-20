@@ -5,27 +5,30 @@ from os.path import isfile
 import sqlite3
 import json
 
-_SCHEMA="""
-
-create table resources (
-
-  id INTEGER PRIMARY KEY AUTOINCREMENT
-  , resource_name TEXT NOT NULL
-  , resource_address TEXT NOT NULL
-  , allocated INTEGER
-  , allocated_to_id TEXT
-  , allocated_to_address TEXT
-
-);
-"""
-
 app = Flask(__name__)
+app.config.from_object(__name__)
+app.config.update(dict(
+    DATABASE=os.path.join(app.root_path, 'database/data.db')
+))
+
+Bootstrap(app)
 
 
 def connect_db():
     rv = sqlite3.connect(app.config['DATABASE'])
     rv.row_factory = sqlite3.Row
     return rv
+
+def init_db():
+    db = get_db()
+    with app.open_resource('schema.sql', mode='r') as f:
+        db.cursor().executescript(f.read())
+    db.commit()
+
+@app.cli.command('initdb')
+def initdb_command():
+    init_db()
+    print "Database Initialised"
 
 def get_db():
     if not hasattr(g,'sqlite_db'):
@@ -81,22 +84,7 @@ def index():
 
 
 
-def configure_app():
-    app.config.from_object(__name__)
-
-    app.config.update(dict(
-        DATABASE=os.path.join(app.root_path,'database/data.db')
-    ))
-
-    if not isfile(app.config['DATABASE']):
-        db = get_db()
-        db.executescript(_SCHEMA)
-
-    Bootstrap(app)
-
-
 if __name__ == "__main__":
-    configure_app()
     app.run(debug=True)
 
 
