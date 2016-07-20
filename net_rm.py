@@ -1,4 +1,4 @@
-from flask import Flask,g, render_template
+from flask import Flask,g, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 import os
 from os.path import isfile
@@ -84,9 +84,12 @@ def deallocate_resource(resource_address):
 def add_resource():
     pass
 
-@app.route('/remove')
-def remove_resource():
-    pass
+@app.route('/remove/<id>', methods=["POST","GET"])
+def remove_resource(id):
+    db = get_db()
+    db.execute("delete from resources where id = ?",id)
+    db.commit()
+    return redirect(url_for('index'))
 
 @app.route('/')
 def index():
