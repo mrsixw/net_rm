@@ -8,5 +8,32 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Hello, Bootstrap</h1>
+  <h1>Resource Status</h1>
+
+  <table class="table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Resource Name</th>
+      <th>Resource Address</th>
+      <th>Resource Allocated?</th>
+      <th>Allocated To</th>
+      <th>Allocated Address</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    {% for resource in resources %}
+      <tr>
+        <th scope="row"> {{ resource.id }} </th>
+        <td>{{ resource.resource_name }}</td>
+        <td>{{ resource.resource_address }}</td>
+        <td>{{ resource.allocated }}</td>
+        <td>{{ resource.allocated_to_id }}</td>
+        <td>{{ resource.allocated_to_address }}</td>
+
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

@@ -30,6 +30,16 @@ def initdb_command():
     init_db()
     print "Database Initialised"
 
+
+@app.cli.command('dummydata')
+def dummydata_command():
+    db = get_db()
+    cur = db.execute("insert into resources (resource_name,resource_address) values (?,?)",
+                     ["resource1", "192.168.0.1"])
+    cur = db.execute("insert into resources (resource_name,resource_address) values (?,?)",
+                     ["resource2", "10.0.0.1"])
+    db.commit()
+
 def get_db():
     if not hasattr(g,'sqlite_db'):
         g.sqlite_db = connect_db()
@@ -80,7 +90,10 @@ def remove_resource():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    db = get_db()
+    cur = db.execute("select * from resources")
+    entries = cur.fetchall()
+    return render_template('index.html', resources = entries)
 
 
 
