@@ -41,8 +41,22 @@ def dummydata_command():
     db = get_db()
     cur = db.execute("insert into resources (resource_name,resource_address) values (?,?)",
                      ["resource1", "192.168.0.1"])
+
+
+
+    cur = db.execute("insert into journal (event_time, event_action,event_resource_id,event_data) values (?, ?, ?, ?)",
+                     [datetime.now(),
+                      "ADD_RESOURCE",
+                      cur.lastrowid,
+                      "Resource added by dummydata!"])
     cur = db.execute("insert into resources (resource_name,resource_address) values (?,?)",
                      ["resource2", "10.0.0.1"])
+    cur = db.execute(
+        "insert into journal (event_time, event_action,event_resource_id,event_data) values (?, ?, ?, ?)",
+        [datetime.now(),
+         "ADD_RESOURCE",
+         cur.lastrowid,
+         "Resource added by dummydata!"])
     db.commit()
 
 def get_db():
