@@ -1,5 +1,5 @@
 
-drop table if EXISTS  resources;
+drop table if exists  resources;
 drop table if exists journal;
 
 create table resources (

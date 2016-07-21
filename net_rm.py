@@ -1,4 +1,4 @@
-from flask import Flask,g, render_template, redirect, url_for, request
+from flask import Flask,g, render_template, redirect, url_for, request, abort
 from flask_bootstrap import Bootstrap
 import os
 from os.path import isfile
@@ -39,18 +39,16 @@ def initdb_command():
 @app.cli.command('dummydata')
 def dummydata_command():
     db = get_db()
-    cur = db.execute("insert into resources (resource_name,resource_address) values (?,?)",
-                     ["resource1", "192.168.0.1"])
-
-
+    cur = db.execute("insert into resources (resource_name,resource_address,allocated) values (?,?,?)",
+                     ["resource1", "192.168.0.1",0])
 
     cur = db.execute("insert into journal (event_time, event_action,event_resource_id,event_data) values (?, ?, ?, ?)",
                      [datetime.now(),
                       "ADD_RESOURCE",
                       cur.lastrowid,
                       "Resource added by dummydata!"])
-    cur = db.execute("insert into resources (resource_name,resource_address) values (?,?)",
-                     ["resource2", "10.0.0.1"])
+    cur = db.execute("insert into resources (resource_name,resource_address,allocated) values (?,?,?)",
+                     ["resource2", "10.0.0.1",0])
     cur = db.execute(
         "insert into journal (event_time, event_action,event_resource_id,event_data) values (?, ?, ?, ?)",
         [datetime.now(),
@@ -90,14 +88,47 @@ def show_status():
     return json.dumps(json_ret)
 
 
-@app.route('/allocate')
-def allocate_resource():
-    pass
+@app.route('/allocate/<type>', methods=["GET"])
+def allocate_resource(type):
 
-@app.route('/deallocate')
-def deallocate_resource(resource_address):
-    pass
+    db = get_db()
+    cur = db.execute('select * from resources where resource_type = ? and allocated = 0;',
+                     [type])
+    row = cur.fetchall()
 
+    if len(row) != 0:
+        # update the row in DB to reflect that we are now using the resource
+        db.execute('update resources set allocated = 1 where id = ?',
+                   [row[0][0]])
+
+        db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
+                   [datetime.now(),
+                    "ALLOCATE_RESOURCE",
+                    row[0][0],
+                    "Resource allocated by %s" % (request.remote_addr)])
+
+        db.commit()
+
+        ret = {'id':row[0][0],'address':row[0][2]}
+        return json.dumps(ret)
+    else:
+        abort(503)
+
+@app.route('/deallocate/<id>',methods=["GET"])
+def deallocate_resource(id):
+    db = get_db()
+    db.execute('update resources set allocated = 0 where id = ?',
+                [id])
+
+    db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
+                [datetime.now(),
+                 "DEALLOCATE_RESOURCE",
+                id,
+                 "Resource deallocated by %s" % (request.remote_addr)])
+
+    db.commit()
+
+    return ""
 
 @app.route('/add', methods=["POST"])
 def add_resource():
@@ -105,10 +136,11 @@ def add_resource():
 
     db = get_db()
     print request.form
-    cur = db.execute("insert into resources (resource_name, resource_address, resource_type) values (?, ?, ?)",
+    cur = db.execute("insert into resources (resource_name, resource_address, resource_type, allocated) values (?, ?, ?, ?)",
                      [request.form['resource_name'],
                       request.form['resource_address'],
-                      request.form['resource_type']])
+                      request.form['resource_type'],
+                      0])
     db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
                [datetime.now(),
                 "ADD_RESOURCE",
