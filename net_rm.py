@@ -107,6 +107,11 @@ def add_resource():
 def remove_resource(id):
     db = get_db()
     db.execute("delete from resources where id = ?",id)
+    db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
+               [datetime.now(),
+                "REMOVE_RESOURCE",
+                id,
+                "Resource removed by %s" % (request.remote_addr)])
     db.commit()
     return redirect(url_for('index'))
 
@@ -115,7 +120,11 @@ def index():
     db = get_db()
     cur = db.execute("select * from resources")
     entries = cur.fetchall()
-    return render_template('index.html', resources = entries)
+
+    cur = db.execute("select * from journal order by id desc limit 20")
+    events = cur.fetchall()
+
+    return render_template('index.html', resources = entries, events = events)
 
 
 

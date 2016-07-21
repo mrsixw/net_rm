@@ -21,8 +21,8 @@
             <th>Allocated Address</th>
             <th></th>
         </tr>
-  </thead>
-  <tbody>
+    </thead>
+    <tbody>
 
     {% for resource in resources %}
         <tr>
@@ -41,6 +41,31 @@
 
       </tr>
     {% endfor %}
-  </tbody>
-</table>
+    </tbody>
+    </table>
+
+
+    <h2>Journal Entries</h2>
+        <table class="table">
+    <thead>
+        <tr>
+            <th>Event Time</th>
+            <th>Event Action</th>
+            <th>Resource</th>
+            <th>Data</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for event in events %}
+        <tr>
+            <th scope="row"> {{ event.event_time }} </th>
+            <td>{{ event.event_action }}</td>
+            <td>{{ event.event_resource_id }}</td>
+            <td>{{ event.event_data }}</td>
+
+      </tr>
+    {% endfor %}
+    </tbody>
+    </table>
 {% endblock %}
