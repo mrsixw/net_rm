@@ -99,9 +99,24 @@ def deallocate_resource(resource_address):
     pass
 
 
-@app.route('/add')
+@app.route('/add', methods=["POST"])
 def add_resource():
-    pass
+    print request.form['resource_name']
+
+    db = get_db()
+    print request.form
+    cur = db.execute("insert into resources (resource_name, resource_address, resource_type) values (?, ?, ?)",
+                     [request.form['resource_name'],
+                      request.form['resource_address'],
+                      request.form['resource_type']])
+    db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
+               [datetime.now(),
+                "ADD_RESOURCE",
+                cur.lastrowid,
+                "Resource added by %s" % (request.remote_addr)])
+
+    db.commit()
+    return redirect(url_for('index'))
 
 @app.route('/remove/<id>', methods=["POST","GET"])
 def remove_resource(id):

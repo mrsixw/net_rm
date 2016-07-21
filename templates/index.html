@@ -16,6 +16,7 @@
             <th>#</th>
             <th>Resource Name</th>
             <th>Resource Address</th>
+            <th>Resource Type</th>
             <th>Resource Allocated?</th>
             <th>Allocated To</th>
             <th>Allocated Address</th>
@@ -29,10 +30,11 @@
             <th scope="row"> {{ resource.id }} </th>
             <td>{{ resource.resource_name }}</td>
             <td>{{ resource.resource_address }}</td>
+            <td>{{ resource.resource_type }}</td>
             <td>{{ resource.allocated }}</td>
             <td>{{ resource.allocated_to_id }}</td>
             <td>{{ resource.allocated_to_address }}</td>
-            <td><a type="buttom"
+            <td><a type="button"
                         class="btn btn-danger"
                         value="{{ resource.id }}"
                         name="remove"
@@ -41,6 +43,19 @@
 
       </tr>
     {% endfor %}
+        <tr>
+            <form method="POST" action="/add">
+            <th scope="row"> # </th>
+            <td><input type="text" name="resource_name" placeholder="Resource Name"></td>
+            <td><input type="text" name="resource_address" placeholder="Resource Address"></td>
+            <td><input type="text" name="resource_type" placeholder="Resource Type"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><button type="submit" class="btn btn-success">Add</button></td>
+            </form>
+
+      </tr>
     </tbody>
     </table>
 
