@@ -1,4 +1,4 @@
-from flask import Flask,g, render_template, redirect, url_for, request, abort
+from flask import Flask,g, render_template, redirect, url_for, request, abort, make_response
 from flask_bootstrap import Bootstrap
 import os
 from os.path import isfile
@@ -69,6 +69,12 @@ def close_db(error):
         g.sqlite_db.close()
 
 
+@app.errorhandler(503)
+def custom503(error):
+    response = make_response()
+    response.status_code = 503
+    return response
+
 @app.route('/status', methods=['GET'])
 def show_status():
     db = get_db()
@@ -88,8 +94,8 @@ def show_status():
     return json.dumps(json_ret)
 
 
-@app.route('/allocate/<type>', methods=["GET"])
-def allocate_resource(type):
+@app.route('/allocate/<type>/to/<requester>', methods=["GET"])
+def allocate_resource(type, requester):
 
     db = get_db()
     cur = db.execute('select * from resources where resource_type = ? and allocated = 0;',
@@ -98,14 +104,16 @@ def allocate_resource(type):
 
     if len(row) != 0:
         # update the row in DB to reflect that we are now using the resource
-        db.execute('update resources set allocated = 1 where id = ?',
-                   [row[0][0]])
+        db.execute('update resources set allocated = 1, allocated_to_id = ?, allocated_to_address = ? where id = ?',
+                   [   requester,
+                       request.remote_addr,
+                       row[0][0]])
 
         db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
                    [datetime.now(),
                     "ALLOCATE_RESOURCE",
                     row[0][0],
-                    "Resource allocated by %s" % (request.remote_addr)])
+                    "Resource allocated to %s for request %s" % (request.remote_addr,requester)])
 
         db.commit()
 
@@ -117,7 +125,7 @@ def allocate_resource(type):
 @app.route('/deallocate/<id>',methods=["GET"])
 def deallocate_resource(id):
     db = get_db()
-    db.execute('update resources set allocated = 0 where id = ?',
+    db.execute("update resources set allocated = 0, allocated_to_address = '', allocated_to_id = '' where id = ?",
                 [id])
 
     db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
