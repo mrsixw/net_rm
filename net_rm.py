@@ -117,7 +117,7 @@ def allocate_resource(type, requester):
 
         db.commit()
 
-        ret = {'id':row[0][0],'address':row[0][2]}
+        ret = {'id':row[0][0],'address':row[0][2],'name':row[0][1]}
         return json.dumps(ret)
     else:
         abort(503)
