@@ -1,7 +1,6 @@
 from flask import Flask,g, render_template, redirect, url_for, request, abort, make_response
 from flask_bootstrap import Bootstrap
 import os
-from os.path import isfile
 import sqlite3
 import json
 from datetime import datetime
@@ -180,11 +179,4 @@ def index():
     events = cur.fetchall()
 
     return render_template('index.html', resources = entries, events = events)
-
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-
 
