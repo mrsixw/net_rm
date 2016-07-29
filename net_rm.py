@@ -137,6 +137,22 @@ def deallocate_resource(id):
 
     return ""
 
+@app.route('/deallocate_ip/<id>',methods=["GET"])
+def deallocate_resource_ip(id):
+    db = get_db()
+    db.execute("update resources set allocated = 0, allocated_to_address = '', allocated_to_id = '' where allocated_to_id = ?",
+                [id])
+
+    db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
+                [datetime.now(),
+                 "DEALLOCATE_RESOURCE (IP)",
+                id,
+                 "Resource deallocated by %s" % (request.remote_addr)])
+
+    db.commit()
+
+    return ""
+
 @app.route('/add', methods=["POST"])
 def add_resource():
     print request.form['resource_name']
