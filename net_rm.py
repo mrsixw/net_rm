@@ -74,9 +74,25 @@ def custom503(error):
     response.status_code = 503
     return response
 
+
+def revoke_timedout_allocation(db):
+    for resource in db.execute("SELECT id from resources WHERE datetime(now, 'unixepoch') - allocated_at > 5400"):
+        db.execute("update resources set allocated = 0, allocated_to_address = '', allocated_to_id = '', allocated_at = NULL where id = ?",
+                   [resource[id]])
+
+        db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
+                   [datetime.now(),
+                    "DEALLOCATE_RESOURCE",
+                    resource[id],
+                    "Resource deallocated by resource manager"])
+    db.commit()
+
+
+
 @app.route('/status', methods=['GET'])
 def show_status():
     db = get_db()
+    revoke_timedout_allocation(db)
 
     json_ret = dict()
 
@@ -97,13 +113,14 @@ def show_status():
 def allocate_resource(type, requester):
 
     db = get_db()
+    revoke_timedout_allocation(db)
     cur = db.execute('select * from resources where resource_type = ? and allocated = 0;',
                      [type])
     row = cur.fetchall()
 
     if len(row) != 0:
         # update the row in DB to reflect that we are now using the resource
-        db.execute('update resources set allocated = 1, allocated_to_id = ?, allocated_to_address = ? where id = ?',
+        db.execute('update resources set allocated = 1, allocated_to_id = ?, allocated_to_address = ?, allocated_at = now() where id = ?',
                    [   requester,
                        request.remote_addr,
                        row[0][0]])
@@ -124,7 +141,8 @@ def allocate_resource(type, requester):
 @app.route('/deallocate/<id>',methods=["GET"])
 def deallocate_resource(id):
     db = get_db()
-    db.execute("update resources set allocated = 0, allocated_to_address = '', allocated_to_id = '' where id = ?",
+    revoke_timedout_allocation(db)
+    db.execute("update resources set allocated = 0, allocated_to_address = '', allocated_to_id = '', allocated_at = NULL where id = ?",
                 [id])
 
     db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
@@ -140,7 +158,8 @@ def deallocate_resource(id):
 @app.route('/deallocate_ip/<id>',methods=["GET"])
 def deallocate_resource_ip(id):
     db = get_db()
-    db.execute("update resources set allocated = 0, allocated_to_address = '', allocated_to_id = '' where allocated_to_id = ?",
+    revoke_timedout_allocation(db)
+    db.execute("update resources set allocated = 0, allocated_to_address = '', allocated_to_id = '', allocated_at = NULL where allocated_to_id = ?",
                 [id])
 
     db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
@@ -158,6 +177,7 @@ def add_resource():
     print request.form['resource_name']
 
     db = get_db()
+    revoke_timedout_allocation(db)
     print request.form
     cur = db.execute("insert into resources (resource_name, resource_address, resource_type, allocated) values (?, ?, ?, ?)",
                      [request.form['resource_name'],
@@ -176,6 +196,7 @@ def add_resource():
 @app.route('/remove/<id>', methods=["POST","GET"])
 def remove_resource(id):
     db = get_db()
+    revoke_timedout_allocation(db)
     db.execute("delete from resources where id = ?",id)
     db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
                [datetime.now(),
@@ -188,6 +209,7 @@ def remove_resource(id):
 @app.route('/')
 def index():
     db = get_db()
+    revoke_timedout_allocation(db)
     cur = db.execute("select * from resources")
     entries = cur.fetchall()
 

@@ -11,12 +11,13 @@ create table resources (
   , allocated INTEGER
   , allocated_to_id TEXT
   , allocated_to_address TEXT
+  , allocated_at INTEGER
 
 );
 
 create table journal (
   id INTEGER PRIMARY KEY AUTOINCREMENT
-  , event_time timestamp NOT  NULL
+  , event_time INTEGER NOT  NULL
   , event_action text NOT NULL
   , event_resource_id integer
   , event_data text
