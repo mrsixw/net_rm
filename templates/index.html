@@ -20,6 +20,7 @@
             <th>Resource Allocated?</th>
             <th>Allocated To</th>
             <th>Allocated Address</th>
+            <th>Allocated At</th>
             <th></th>
         </tr>
     </thead>
@@ -34,6 +35,7 @@
             <td>{{ resource.allocated }}</td>
             <td>{{ resource.allocated_to_id }}</td>
             <td>{{ resource.allocated_to_address }}</td>
+            <td>{{ resource.allocated_at }}</td>
             <td><a type="button"
                         class="btn btn-danger"
                         value="{{ resource.id }}"
