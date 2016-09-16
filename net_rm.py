@@ -192,7 +192,7 @@ def add_resource():
 @app.route('/remove/<id>', methods=["POST","GET"])
 def remove_resource(id):
     db = get_db()
-    db.execute("DELETE FROM resources WHERE id = ?", [id,])
+    db.execute("delete from resources where id = ?",(id,))
     db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
                [datetime.now(),
                 "REMOVE_RESOURCE",
