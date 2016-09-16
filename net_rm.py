@@ -140,6 +140,19 @@ def allocate_resource(type, requester):
     else:
         abort(503)
 
+@app.route('/ip_query/<type>', methods=["GET"])
+def resource_address_query(type):
+    db = get_db()
+    cur = db.execute('SELECT * FROM resources WHERE resource_type = ? AND allocated = 0;',
+                     [type])
+    row = cur.fetchall()
+
+    if len(row) != 0:
+        ret = {'id':row[0][0],'address':row[0][2],'name':row[0][1]}
+        return json.dumps(ret)
+    else:
+        abort(503)
+
 @app.route('/deallocate/<id>',methods=["GET"])
 def deallocate_resource(id):
     db = get_db()
