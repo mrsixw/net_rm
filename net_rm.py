@@ -106,7 +106,9 @@ def show_status():
                                     'resource_address': resource['resource_address'],
                                     'allocated': resource['allocated'],
                                     'allocated_to_id': resource['allocated_to_id'],
-                                    'allocated_to_address': resource['allocated_to_address']}
+                                    'allocated_to_address': resource['allocated_to_address'],
+                                    'allocated_at': resource['allocated_at'],
+                                    'allocatable':resource['allocatable']}
     print(json.dumps(json_ret,sort_keys=True, indent=4))
     return json.dumps(json_ret)
 
@@ -114,7 +116,7 @@ def show_status():
 @app.route('/allocate/<type>/to/<requester>', methods=["GET"])
 def allocate_resource(type, requester):
     db = get_db()
-    cur = db.execute('SELECT * FROM resources WHERE resource_type = ? AND allocated = 0;',
+    cur = db.execute('SELECT * FROM resources WHERE resource_type = ? AND allocated = 0 AND allocatable = 1;',
                      [type])
     row = cur.fetchall()
 
@@ -188,11 +190,15 @@ def deallocate_resource_ip(id):
 @app.route('/add', methods=["POST"])
 def add_resource():
     db = get_db()
-    cur = db.execute("INSERT INTO resources (resource_name, resource_address, resource_type, allocated) VALUES (?, ?, ?, ?)",
+
+    allocatable = 1 if request.form.get("allocatable") == 'on' else 0
+
+    cur = db.execute("INSERT INTO resources (resource_name, resource_address, resource_type, allocated, allocatable) VALUES (?, ?, ?, ?, ?)",
                      [request.form['resource_name'].strip(),
                       request.form['resource_address'].strip(),
                       request.form['resource_type'].strip(),
-                      0])
+                      0,
+                      allocatable])
     db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
                [datetime.now(),
                 "ADD_RESOURCE",

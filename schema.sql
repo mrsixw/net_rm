@@ -12,7 +12,7 @@ create table resources (
   , allocated_to_id TEXT
   , allocated_to_address TEXT
   , allocated_at INTEGER
-
+  , allocatable INTEGER
 );
 
 create table journal (
