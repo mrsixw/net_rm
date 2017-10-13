@@ -145,7 +145,7 @@ def allocate_resource(type, requester):
 @app.route('/ip_query/<type>', methods=["GET"])
 def resource_address_query(type):
     db = get_db()
-    cur = db.execute('SELECT * FROM resources WHERE resource_type = ? AND allocated = 0;',
+    cur = db.execute('SELECT * FROM resources WHERE resource_type = ? AND allocatable = 0;',
                      [type])
     row = cur.fetchall()
 
