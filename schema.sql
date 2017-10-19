@@ -13,6 +13,7 @@ create table resources (
   , allocated_to_address TEXT
   , allocated_at INTEGER
   , allocatable INTEGER
+  , additional_parameters TEXT
 );
 
 create table journal (

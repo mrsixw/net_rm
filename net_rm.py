@@ -108,7 +108,8 @@ def show_status():
                                     'allocated_to_id': resource['allocated_to_id'],
                                     'allocated_to_address': resource['allocated_to_address'],
                                     'allocated_at': resource['allocated_at'],
-                                    'allocatable':resource['allocatable']}
+                                    'allocatable':resource['allocatable'],
+                                    'additional_parameters':resource['additional_parameters']}
     print(json.dumps(json_ret,sort_keys=True, indent=4))
     return json.dumps(json_ret)
 
@@ -137,7 +138,7 @@ def allocate_resource(type, requester):
 
         db.commit()
 
-        ret = {'id':row[0][0],'address':row[0][2],'name':row[0][1]}
+        ret = {'id':row[0][0],'address':row[0][2],'name':row[0][1],'additional_parameters':row[0][9]}
         return json.dumps(ret)
     else:
         abort(503)
@@ -150,7 +151,7 @@ def resource_address_query(type):
     row = cur.fetchall()
 
     if len(row) != 0:
-        ret = {'id':row[0][0],'address':row[0][2],'name':row[0][1]}
+        ret = {'id':row[0][0],'address':row[0][2],'name':row[0][1],'additional_parameters':row[0][9]}
         return json.dumps(ret)
     else:
         abort(503)
@@ -193,12 +194,13 @@ def add_resource():
 
     allocatable = 1 if request.form.get("allocatable") == 'on' else 0
 
-    cur = db.execute("INSERT INTO resources (resource_name, resource_address, resource_type, allocated, allocatable) VALUES (?, ?, ?, ?, ?)",
+    cur = db.execute("INSERT INTO resources (resource_name, resource_address, resource_type, allocated, allocatable, additional_parameters) VALUES (?, ?, ?, ?, ?, ?)",
                      [request.form['resource_name'].strip(),
                       request.form['resource_address'].strip(),
                       request.form['resource_type'].strip(),
                       0,
-                      allocatable])
+                      allocatable,
+                      request.form['additional_parameters'].strip()])
     db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
                [datetime.now(),
                 "ADD_RESOURCE",

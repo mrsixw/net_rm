@@ -17,6 +17,7 @@
             <th>Resource Name</th>
             <th>Resource Address</th>
             <th>Resource Type</th>
+            <th>Additional Parameters</th>
             <th>Resource Allocatable?</th>
             <th>Resource Allocated?</th>
             <th>Allocated To</th>
@@ -33,6 +34,7 @@
             <td>{{ resource.resource_name }}</td>
             <td>{{ resource.resource_address }}</td>
             <td>{{ resource.resource_type }}</td>
+            <td>{{ resource.additional_parameters }}</td>
             <td>{{ resource.allocatable }}</td>
             <td>{{ resource.allocated }}</td>
             <td>{{ resource.allocated_to_id }}</td>
@@ -53,6 +55,7 @@
             <td><input type="text" name="resource_name" placeholder="Resource Name"></td>
             <td><input type="text" name="resource_address" placeholder="Resource Address"></td>
             <td><input type="text" name="resource_type" placeholder="Resource Type"></td>
+            <td><input type="text" name="additional_parameters" placeholder="Additional Parameters"></td>
             <td><center><input type="checkbox" name="allocatable" ></center></td>
             <td></td>
             <td></td>
