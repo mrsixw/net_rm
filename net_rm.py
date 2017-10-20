@@ -128,17 +128,17 @@ def allocate_resource(type, requester):
                    [   requester,
                        request.remote_addr,
                        unixtime,
-                       row[0][0]])
+                       row[0]['id']])
 
         db.execute("INSERT INTO journal (event_time, event_action,event_resource_id,event_data) VALUES (?, ?, ?, ?)",
                    [datetime.now(),
                     "ALLOCATE_RESOURCE",
-                    row[0][0],
+                    row[0]['id'],
                     "Resource allocated to %s for request %s" % (request.remote_addr,requester)])
 
         db.commit()
 
-        ret = {'id':row[0][0],'address':row[0][2],'name':row[0][1],'additional_parameters':row[0][9]}
+        ret = {'id':row[0]['id'],'address':row[0]['resource_address'],'name':row[0]['resource_name'],'additional_parameters':row[0]['additional_parameters']}
         return json.dumps(ret)
     else:
         abort(503)
@@ -151,7 +151,7 @@ def resource_address_query(type):
     row = cur.fetchall()
 
     if len(row) != 0:
-        ret = {'id':row[0][0],'address':row[0][2],'name':row[0][1],'additional_parameters':row[0][9]}
+        ret = {'id':row[0]['id'],'address':row[0]['resource_address'],'name':row[0]['resource_name'],'additional_parameters':row[0]['additional_parameters']}
         return json.dumps(ret)
     else:
         abort(503)
